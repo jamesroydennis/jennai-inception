@@ -1,0 +1,99 @@
+# Byte-compiled / optimized / C extensions
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging artifacts
+build/
+dist/
+eggs/
+.eggs/
+sdist/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller cache files
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# IDE & Editor Config
+.idea/
+.vscode/
+.spyderproject
+.spyproject
+.ropeproject
+.cursorignore
+.cursorindexingignore
+
+# Testing, Coverage & Reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+.hypothesis/
+.pytest_cache/
+cover/
+allure-results/
+allure-report/
+
+# Node.js & Frontend
+node_modules/
+package-lock.json
+# Ignore lock files in nested frontend projects
+src/presentation/*/package-lock.json
+
+# Flask cache
+instance/
+.webassets-cache
+
+# Sphinx documentation
+docs/_build/
+
+# Jupyter & IPython
+.ipynb_checkpoints/
+profile_default/
+ipython_config.py
+
+# Linting & Type Checking
+.ruff_cache/
+
+# PyPI config
+.pypirc
+
+# --- Project-Specific ---
+# Logs
+logs/
+
+# Temporary / Cache files
+.virtual_documents/
+anaconda_projects/
+.trash/
+.~lock.environment.yaml#
+
+# Generated files and data
+src/data/database/*.db
+src/data/database/*.db-journal
+src/data/system_info/
+src/presentation/api_server/flask_app/static/css/main.css
+src/presentation/brand/hide/

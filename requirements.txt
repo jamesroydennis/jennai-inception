@@ -1,0 +1,12 @@
+pydantic
+google-generativeai
+loguru>=0.7.0
+pytest>=7.0
+pytest-loguru
+numexpr
+allure-pytest
+opencv-python==4.10.0.84
+rich>=10.0.0
+InquirerPy>=0.3.0
+markdown>=3.0.0
+# Add other pip dependencies here

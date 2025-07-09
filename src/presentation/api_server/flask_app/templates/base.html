@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - JennAI</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('brand.serve_favicon') }}">
+    <link rel="stylesheet" href="{{ url_for('brand.serve_css') }}">
+</head>
+<body>
+    <header class="main-header">
+        <img src="{{ url_for('brand.serve_logo') }}" alt="JennAI Logo" class="logo">
+        <h1>Welcome to JennAI</h1>
+    </header>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

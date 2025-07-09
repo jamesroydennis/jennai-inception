@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="hero-section">
+        <h1>JennAI</h1>
+        <h2>Bridging the Unyielding Question</h2>
+        <p>This application is the result of a persona-driven development process, demonstrating a fully integrated and testable system.</p>
+    </div>
+
+    {% if mission_statement %}
+    <div class="mission-content">
+        <h3>Mission</h3>
+        <p><em>{{ mission_statement }}</em></p>
+    </div>
+    {% endif %}
+
+    {% if problem_statement %}
+    <div class="problem-content">
+        <h3>The Challenge</h3>
+        <div class="content">
+            {{ problem_statement|safe }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if seed_content %}
+    <div class="seed-content">
+        <h3>The Seed</h3>
+        <p><em>{{ seed_content }}</em></p>
+    </div>
+    {% endif %}
+
+    {% if vision_statement %}
+    <div class="vision-content">
+        <h3>Our Vision</h3>
+        <div class="content">
+            {{ vision_statement|safe }}
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
