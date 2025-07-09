@@ -1,37 +1,37 @@
-from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+# File: src/business/interfaces/IAIInterface.py
 
-class IAIService(ABC):
+import abc
+from typing import Any, Dict, List, Optional
+
+class IAIInterface(abc.ABC):
     """
-    Interface (Abstract Base Class) for AI services.
-    Defines the contract for operations related to AI functionalities
-    like text generation, image analysis, etc.
+    Interface for Artificial Intelligence (AI) service implementations.
+    Defines the contract for interacting with various AI models or APIs,
+    focusing on computational and generative tasks.
     """
 
-    @abstractmethod
-    def generate_text(self, prompt: str, options: Optional[Dict[str, Any]] = None) -> str:
+    @abc.abstractmethod
+    def process_text(self, text: str, **kwargs) -> Dict[str, Any]:
         """
-        Generates text based on a given prompt and optional parameters.
-
-        Args:
-            prompt: The input text prompt for the AI model.
-            options: A dictionary of additional options for generation (e.g., temperature, max_tokens).
-
-        Returns:
-            The generated text as a string.
+        Abstract method to process text using the AI service.
+        Returns a dictionary containing the processed output and potentially metadata.
         """
-        raise NotImplementedError
+        pass
 
-    @abstractmethod
-    def analyze_image(self, image_data: bytes, options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    @abc.abstractmethod
+    def generate_image(self, prompt: str, **kwargs) -> bytes:
         """
-        Analyzes an image and returns insights.
-
-        Args:
-            image_data: The image data in bytes.
-            options: A dictionary of additional options for analysis.
-
-        Returns:
-            A dictionary containing the analysis results.
+        Abstract method to generate an image from a prompt.
+        Returns the image data as bytes.
         """
-        raise NotImplementedError
+        pass
+
+    @abc.abstractmethod
+    def embed_text(self, text: str, **kwargs) -> List[float]:
+        """
+        Abstract method to generate a numerical embedding for text.
+        Returns a list of floats representing the embedding.
+        """
+        pass
+
+    # Add other common AI operations as abstract methods here

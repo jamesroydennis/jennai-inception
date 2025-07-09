@@ -1,127 +1,102 @@
+# File: core/dependency_container.py (within your existing DependencyContainer class)
+
 import inspect
-from typing import Type, TypeVar, Dict, Callable, Any, Union, get_origin, get_args
+from typing import Type, TypeVar, Dict, Callable, Any, Union, get_origin, get_args, Optional, List
 from loguru import logger
+import os
+
+# --- New/Updated Imports needed for the configuration ---
+from config.loguru_setup import get_logger
+from src.business.ai.gemini_api import GeminiAPIService
+from src.business.ai.loggin_ai_decorator import LoggingAIInterface
+from src.business.interfaces.IAIService import IAIInterface
+from src.data.interfaces.ICrudRepository import ICrudRepository # Still needed for composition
 
 # Define a TypeVar for the interface type for cleaner type hinting
 I = TypeVar('I')
 
 class DependencyContainer:
-    """
-    A simple Inversion of Control (IoC) container for dependency injection.
-    Allows registering concrete implementations for interfaces/abstractions,
-    and resolving instances with their dependencies automatically.
-    Supports singletons and pre-registered instances.
-    """
+    # Your existing __init__, _get_key, register, register_singleton, register_instance, resolve, reset methods go here.
+    # ... (existing methods as provided in your prompt) ...
+
+    # This is the primary method to update for configuring your application's dependencies
+    def configure_application_dependencies(self):
+        """
+        Configures the application's dependencies by registering interfaces
+        with their concrete implementations and applying decorators.
+        This method is called once during application startup.
+        """
+        logger.info("INFO - Configuring application dependencies...")
+
+        # 1. Get the shared logger instance configured by loguru_setup.py
+        #    It's good practice to bind a top-level component context to your logger.
+        shared_app_logger = get_logger().bind(app_context="jennai-inception")
+        self.register_instance(logger.__class__, shared_app_logger) # Register the bound logger if you want to inject it
+
+
+        # 2. Configure ICrudRepository (example: using a mock or concrete implementation with its own decorator)
+        #    You would replace MockCrudRepository with your actual database implementation
+        #    (e.g., SqliteRepository, wrapped with a LoggingCrudRepository if you create one).
+        class MockCrudRepository(ICrudRepository): # This is a conceptual mock for DI demonstration
+            def create(self, entity: Any) -> Any:
+                shared_app_logger.debug("MockCrudRepository: Creating entity.")
+                return entity
+            def read(self, entity_id: Any) -> Optional[Any]:
+                shared_app_logger.debug(f"MockCrudRepository: Reading entity with ID: {entity_id}.")
+                return {"id": entity_id, "data": "mock_data"}
+            def update(self, entity: Any) -> Any:
+                shared_app_logger.debug("MockCrudRepository: Updating entity.")
+                return entity
+            def delete(self, entity_id: Any):
+                shared_app_logger.debug(f"MockCrudRepository: Deleting entity with ID: {entity_id}.")
+            def list_all(self) -> List[Any]:
+                shared_app_logger.debug("MockCrudRepository: Listing all entities.")
+                return []
+
+        # Register ICrudRepository as a singleton, potentially wrapped with logging/validation
+        self.register_singleton(ICrudRepository, MockCrudRepository) # Registering the mock as a singleton
+
+
+        # 3. Configure IAIInterface: Apply the Decorator Pattern for logging
+        logger.info("INFO - Registering IAIInterface with logging decorator...")
+
+        # Instantiate the concrete AI service (e.g., GeminiAPIService)
+        # It may compose ICrudRepository if needed for its internal operations
+        gemini_concrete = GeminiAPIService(
+            api_key=os.getenv("GEMINI_API_KEY"), # Get API key from environment variables
+            data_repository=self.resolve(ICrudRepository) # Injecting the configured ICrudRepository
+        )
+
+        # Wrap the concrete AI service with the logging decorator
+        # Pass the shared logger instance (optionally bind with AI-specific context for logs)
+        gemini_logged_decorated = LoggingAIInterface(
+            gemini_concrete,
+            shared_app_logger.bind(component="AI_Service_Gemini") # More granular logging context
+        )
+
+        # Register the decorated AI service with the container as the default IAIInterface
+        # Now, any client requesting IAIInterface will get the logging-enabled version
+        self.register_singleton(IAIInterface, lambda: gemini_logged_decorated) # Using lambda for lazy singleton creation of decorated service
+
+        # Example for registering an alternative AI service, if needed (e.g., OpenAI)
+        # from src.business.ai.openai_api import OpenAIService # Hypothetical OpenAI implementation
+        # openai_concrete = OpenAIService(
+        #     api_key=os.getenv("OPENAI_API_KEY"),
+        #     data_repository=self.resolve(ICrudRepository)
+        # )
+        # openai_logged_decorated = LoggingAIInterface(
+        #     openai_concrete,
+        #     shared_app_logger.bind(component="AI_Service_OpenAI")
+        # )
+        # self.register("IAIInterface_OpenAI", lambda: openai_logged_decorated) # Register by a unique name if you need to choose at runtime
+
+
+        logger.info("INFO - Application dependencies configured.")
+
+    # Your existing __init__, _get_key, register, register_singleton, register_instance, resolve, reset methods go here.
+    # Make sure _configure_application_dependencies() is called from your __init__
     def __init__(self):
-        self._registrations: Dict[Any, Any] = {} # Key can be Type or (Origin, Args)
-        self._singletons: Dict[Any, Any] = {}    # Stores instantiated singletons (keyed by abstraction key)
+        self._registrations: Dict[Any, Any] = {}
+        self._singletons: Dict[Any, Any] = {}
         logger.debug("DEBUG - DependencyContainer initialized.")
-
-    def _get_key(self, abstraction: Type[I]) -> Any:
-        """Internal helper to get the key for registration/resolution, handling generics."""
-        if get_origin(abstraction):
-            return (get_origin(abstraction), get_args(abstraction))
-        return abstraction
-
-    def register(self, abstraction: Type[I], concrete_impl: Union[Type[I], Callable[..., I]]):
-        """
-        Registers a concrete implementation class or a factory function for an abstraction.
-        Instances will be new on each resolve (transient lifecycle), unless registered as singleton.
-        """
-        key = self._get_key(abstraction)
-        self._registrations[key] = concrete_impl
-        logger.debug(f"DEBUG - Registered {concrete_impl.__name__ if hasattr(concrete_impl, '__name__') else str(concrete_impl)} for {str(abstraction)} as transient.")
-
-    def register_singleton(self, abstraction: Type[I], concrete_impl: Union[Type[I], Callable[..., I]] = None):
-        """
-        Registers a concrete implementation or a factory function for an abstraction as a singleton.
-        The instance will be created on the first resolve and reused for subsequent resolves.
-        If concrete_impl is None, assumes abstraction is also the concrete implementation.
-        """
-        key = self._get_key(abstraction)
-        if concrete_impl is None:
-            concrete_impl = abstraction # Assume abstraction is also the concrete class
-
-        self._registrations[key] = concrete_impl
-        # If it's a direct instance, store it immediately. Otherwise, it's lazy.
-        if not inspect.isclass(concrete_impl) and not callable(concrete_impl):
-            self._singletons[key] = concrete_impl
-            logger.debug(f"DEBUG - Registered {str(concrete_impl)} for {str(abstraction)} as singleton (instance).")
-        else:
-            # Mark it as a singleton registration for lazy instantiation
-            self._registrations[key] = {'type': 'singleton', 'impl': concrete_impl}
-            logger.debug(f"DEBUG - Registered {concrete_impl.__name__ if hasattr(concrete_impl, '__name__') else str(concrete_impl)} for {str(abstraction)} as singleton (lazy).")
-
-    def register_instance(self, abstraction: Type[I], instance: I):
-        """
-        Registers a pre-existing instance for an abstraction. This instance will always be returned.
-        """
-        key = self._get_key(abstraction)
-        self._registrations[key] = instance
-        self._singletons[key] = instance # Treat pre-registered instance as a singleton
-        logger.debug(f"DEBUG - Registered pre-existing instance {str(instance)} for {str(abstraction)}.")
-
-    def resolve(self, abstraction: Type[I]) -> I:
-        """
-        Resolves an instance of the requested abstraction, injecting its dependencies.
-        """
-        key = self._get_key(abstraction)
-
-        # 1. Check if it's already a resolved singleton instance
-        if key in self._singletons:
-            logger.debug(f"DEBUG - Resolving existing singleton for {str(abstraction)}.")
-            return self._singletons[key]
-
-        # 2. Look up registration
-        if key not in self._registrations:
-            logger.error(f"ERROR - No implementation registered for abstraction: {str(abstraction)}.")
-            raise ValueError(f"No implementation registered for abstraction: {str(abstraction)}")
-
-        registration_entry = self._registrations[key]
-
-        # 3. Handle singleton registration (lazy instantiation)
-        is_singleton_registration = isinstance(registration_entry, dict) and registration_entry.get('type') == 'singleton'
-        concrete_impl_or_factory = registration_entry['impl'] if is_singleton_registration else registration_entry
-
-        # 4. Handle factory function
-        if callable(concrete_impl_or_factory) and not inspect.isclass(concrete_impl_or_factory):
-            logger.debug(f"DEBUG - Resolving {str(abstraction)} using a factory function.")
-            instance = concrete_impl_or_factory()
-            if is_singleton_registration: # Store result if it was marked as a singleton factory
-                self._singletons[key] = instance
-                logger.debug(f"DEBUG - Stored factory-resolved instance for singleton {str(abstraction)}.")
-            return instance
-
-        # 5. Handle concrete class (auto-inject dependencies)
-        concrete_class = concrete_impl_or_factory
-        signature = inspect.signature(concrete_class.__init__)
-        dependencies = {}
-
-        for name, param in signature.parameters.items():
-            if name == 'self':
-                continue
-
-            if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD or \
-               param.kind == inspect.Parameter.KEYWORD_ONLY:
-
-                if param.annotation == inspect.Parameter.empty:
-                    logger.warning(f"WARNING - Parameter '{name}' in {concrete_class.__name__}.__init__ has no type hint. Cannot auto-resolve.")
-                    continue
-
-                logger.debug(f"DEBUG - Resolving dependency '{name}' of type {str(param.annotation)} for {concrete_class.__name__}.")
-                dependencies[name] = self.resolve(param.annotation) # Recursive resolution
-
-        instance = concrete_class(**dependencies)
-        logger.debug(f"DEBUG - Instantiated {concrete_class.__name__}.")
-
-        if is_singleton_registration: # Store newly created instance if marked as singleton class
-            self._singletons[key] = instance
-            logger.debug(f"DEBUG - Stored newly created instance for singleton {str(abstraction)}.")
-
-        return instance
-
-    def reset(self):
-        """Clears all registrations and singletons."""
-        self._registrations.clear()
-        self._singletons.clear()
-        logger.debug("DEBUG - DependencyContainer reset.")
+        self.configure_application_dependencies() # Call the new configuration method here
