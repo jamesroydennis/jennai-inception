@@ -76,3 +76,7 @@ def stop_file_logging():
 def start_file_logging(debug_mode: bool):
     """Re-initializes all logging handlers."""
     setup_logging(debug_mode)
+    
+def get_logger():
+    """Returns the global loguru logger instance."""
+    return logger

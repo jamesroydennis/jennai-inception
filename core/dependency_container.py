@@ -8,7 +8,7 @@ import os
 # --- New/Updated Imports needed for the configuration ---
 from config.loguru_setup import get_logger
 from src.business.ai.gemini_api import GeminiAPIService
-from src.business.ai.loggin_ai_decorator import LoggingAIInterface
+from src.business.ai.logging_ai_decorator import LoggingAIDecorator
 from src.business.interfaces.IAIService import IAIInterface
 from src.data.interfaces.ICrudRepository import ICrudRepository # Still needed for composition
 
@@ -16,6 +16,17 @@ from src.data.interfaces.ICrudRepository import ICrudRepository # Still needed f
 I = TypeVar('I')
 
 class DependencyContainer:
+    def resolve(self, interface):
+        """
+        Resolves and returns the instance registered for the given interface.
+        Raises KeyError if the interface is not registered.
+        """
+        if interface in self._singletons:
+            return self._singletons[interface]
+        if interface in self._registrations:
+            # If not a singleton, create a new instance from the registration
+            return self._registrations[interface]()
+        raise KeyError(f"No registration found for interface: {interface}")
     # Your existing __init__, _get_key, register, register_singleton, register_instance, resolve, reset methods go here.
     # ... (existing methods as provided in your prompt) ...
 
@@ -52,6 +63,12 @@ class DependencyContainer:
             def list_all(self) -> List[Any]:
                 shared_app_logger.debug("MockCrudRepository: Listing all entities.")
                 return []
+            def read_all(self) -> list:
+                shared_app_logger.debug("MockCrudRepository: Reading all entities.")
+                return []
+            def read_by_id(self, entity_id: Any) -> Optional[Any]:
+                shared_app_logger.debug(f"MockCrudRepository: Reading entity by ID: {entity_id}.")
+                return {"id": entity_id, "data": "mock_data"}
 
         # Register ICrudRepository as a singleton, potentially wrapped with logging/validation
         self.register_singleton(ICrudRepository, MockCrudRepository) # Registering the mock as a singleton
@@ -69,7 +86,7 @@ class DependencyContainer:
 
         # Wrap the concrete AI service with the logging decorator
         # Pass the shared logger instance (optionally bind with AI-specific context for logs)
-        gemini_logged_decorated = LoggingAIInterface(
+        gemini_logged_decorated = LoggingAIDecorator(
             gemini_concrete,
             shared_app_logger.bind(component="AI_Service_Gemini") # More granular logging context
         )
@@ -100,3 +117,33 @@ class DependencyContainer:
         self._singletons: Dict[Any, Any] = {}
         logger.debug("DEBUG - DependencyContainer initialized.")
         self.configure_application_dependencies() # Call the new configuration method here
+        
+    def register_instance(self, interface, instance):
+        self._singletons[interface] = instance
+
+    def register_singleton(self, interface, implementation_or_factory):
+        """
+        Registers a singleton for the given interface.
+        If a class is provided, it will be instantiated once.
+        If a factory (callable) is provided, it will be called once to create the instance.
+        """
+        if callable(implementation_or_factory):
+            # Assume it's a factory function or class
+            instance = implementation_or_factory()
+        else:
+            # Assume it's a class type, instantiate it
+            instance = implementation_or_factory()
+        self._singletons[interface] = instance
+
+    def register_singleton(self, interface, implementation_or_factory):
+        """
+        Registers a singleton for the given interface. Accepts either a class (which will be instantiated)
+        or a factory function/lambda (which will be called to produce the singleton instance).
+        """
+        if callable(implementation_or_factory) and not isinstance(implementation_or_factory, type):
+            # It's a factory function or lambda
+            instance = implementation_or_factory()
+        else:
+            # It's a class/type
+            instance = implementation_or_factory()
+        self._singletons[interface] = instance

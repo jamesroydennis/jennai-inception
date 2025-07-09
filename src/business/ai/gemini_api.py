@@ -4,7 +4,7 @@
 # import google.generativeai as genai
 # from google.generativeai.types import GenerateContentResponse
 
-from src.business.interfaces.IAIInterface import IAIInterface
+from src.business.interfaces.IAIService import IAIInterface
 from src.data.interfaces.ICrudRepository import ICrudRepository # Import if needed for composition
 from typing import Any, Dict, List, Optional
 

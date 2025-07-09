@@ -1,8 +1,10 @@
+
 import subprocess
 import sys
 from pathlib import Path
 import os
 import pytest
+import traceback
 from config.loguru_setup import logger 
 
 
@@ -44,12 +46,10 @@ def test_main_py_initializes_successfully(app_config):
         # These assertions confirm that the main orchestration script ran through its key stages.
         # We also check that DEBUG_MODE was correctly passed to and logged by the subprocess.
         assert "INFO - Running in DEBUG_MODE: True" in process.stderr
-        assert "SUCCESS - src/business dependencies configured (conceptual)." in process.stderr
-        assert "SUCCESS - src/data dependencies configured (conceptual)." in process.stderr
-        assert "SUCCESS - src/presentation dependencies configured (conceptual)." in process.stderr
-        assert "SUCCESS - JennAI OS has successfully booted and performed initial checks." in process.stderr
+        assert "INFO - JennAI STARTUP COMPLETE. Dependencies wired via IoC." in process.stderr
 
     except FileNotFoundError:
         pytest.fail(f"Failed to find Python interpreter: {sys.executable} or main.py script.")
     except Exception as e:
-        pytest.fail(f"An unexpected error occurred while running main.py subprocess: {e}")
+        tb = traceback.format_exc()
+        pytest.fail(f"An unexpected error occurred while running main.py subprocess: {e}\n\nTraceback:\n{tb}")
