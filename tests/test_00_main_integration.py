@@ -46,7 +46,7 @@ def test_main_py_initializes_successfully(app_config):
         # These assertions confirm that the main orchestration script ran through its key stages.
         # We also check that DEBUG_MODE was correctly passed to and logged by the subprocess.
         assert "INFO - Running in DEBUG_MODE: True" in process.stderr
-        assert "INFO - JennAI STARTUP COMPLETE. Dependencies wired via IoC." in process.stderr
+        assert "INFO - JennAI STARTUP COMPLETE. All dependencies configured." in process.stderr
 
     except FileNotFoundError:
         pytest.fail(f"Failed to find Python interpreter: {sys.executable} or main.py script.")

@@ -59,7 +59,7 @@ if __name__ == '__main__':
         sys.exit(1) # Exit if core app cannot be initialized
 
 
-    logger.info("INFO - JennAI STARTUP COMPLETE. Dependencies wired via IoC.")
+    logger.info("INFO - JennAI STARTUP COMPLETE. All dependencies configured.")
 
     # You would typically run your Flask app here, e.g.:
     # if flask_app_instance:
