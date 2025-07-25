@@ -1,0 +1,12 @@
+# Development Timeline
+
+| Phase | Goal                                               | Est. Time (Solo, Focused) |
+|-------|----------------------------------------------------|----------------------------|
+| 1     | T-shirt product seeded, basic DB + schema          | 1 day                      |
+| 2     | Basic data_ingest/ for tariffs + FX (mock)         | 2–3 days                   |
+| 3     | Score model for 4 regions (hardcoded weights)      | 1–2 days                   |
+| 4     | CLI or console script: “Best source today”         | 1–2 days                   |
+| 5     | Add UQ module + source fallback logic              | 2–3 days                   |
+| 6     | Build simple dashboard (Streamlit/Flask)           | 3–5 days                   |
+| 7     | Plug in live API (Fixer.io, WTO scrape)            | 5–7 days                   |
+| 8     | First usable MVP (solo-alpha release)              | ~4–6 weeks total           |
