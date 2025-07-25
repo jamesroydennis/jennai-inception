@@ -60,13 +60,6 @@ ENVIRONMENTS = [
     "PROD"
 ]
 
-# Conda environments allowed to run admin scripts
-WHITELIST_ENVIRONMENTS = [
-    "jennai-root",
-    "lily-presents"
-]
-# Alias for backward compatibility
-ALLOWED_ENVS = WHITELIST_ENVIRONMENTS
 
 # ============================================================================
 # 6. APPLICATION PRESENTATION LAYER NAMES
@@ -93,6 +86,27 @@ ROLES = [
     "VIEWER"
 ]
 
+# Decorator to validate user role before executing a function
+from functools import wraps
+
+def require_role(role):
+    """
+    Decorator to ensure the provided role is valid before executing the function.
+    Usage:
+        @require_role("ADMIN")
+        def some_admin_function(...):
+            ...
+    Raises ValueError if the role is not in the allowed ROLES list.
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if role not in ROLES:
+                raise ValueError(f"Role '{role}' is not a valid role. Allowed roles: {ROLES}")
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
 # ============================================================================
 # 8. DEBUGGING & DEVELOPMENT FLAGS
 # ============================================================================
@@ -102,18 +116,6 @@ READ_ONLY_MODE = os.getenv("READ_ONLY_MODE", "False").lower() in ('true', '1', '
 LIVE_INFERENCE_MODE = os.getenv("LIVE_INFERENCE_MODE", "False").lower() in ('true', '1', 't')
 MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "False").lower() in ('true', '1', 't')
 
-
-# ============================================================================
-# 9. (OPTIONAL) BRANDING & ASSET PATHS
-# ============================================================================
-FAVICON_PATH = BRAND_DIR / "favicon_io" / "favicon.ico"
-LOGO_PATH    = BRAND_DIR / "jennai-logo.png"
-
-# ============================================================================
-# 10. DEFAULT ADMIN USER (for dev/testing)
-# ============================================================================
-DEFAULT_ADMIN_USER  = "admin"
-DEFAULT_ADMIN_EMAIL = "admin@jennai.local"
 
 # ============================================================================
 # 11. CORE PYTHON DEPENDENCIES
