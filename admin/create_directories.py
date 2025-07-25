@@ -34,6 +34,9 @@ DIRECTORIES = {
     # Business layer
     "src/business": {"is_package": True},
     "src/business/ai": {"is_package": True},
+    "src/business/ai/data_ingest": {"is_package": True},
+    "src/business/ai/forecasting": {"is_package": True},
+    "src/business/ai/pricing_engine": {"is_package": True},
     "src/business/interfaces": {"is_package": True},
     "src/business/notebooks": {"is_package": False},
     "src/business/tests": {"is_package": True},

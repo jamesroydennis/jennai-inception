@@ -16,6 +16,9 @@ try:
     # Attempt to import the project's validation logic.
     try:
         from src.validation.validator import validate_admin_environment
+        from src.data.implementations.sqllite.seed_data import seed_data
+        from src.business.ai.pricing_engine.scorer import score_regions
+
     except ImportError:
         # Provide a graceful fallback if the validator isn't available.
         # This allows the console to run even if the validation module is under development.
@@ -826,6 +829,19 @@ def main():
             result = _show_persona_selection_menu()
             if result == 'exit':
                 break # Exit the main while loop
+
+def seed_database():
+    from src.data.implementations.sqllite.seed_data import seed_data
+    seed_data()
+    print("✅ Mock data inserted successfully.")
+
+def score_tshirt():
+    from src.business.ai.pricing_engine.scorer import score_regions
+    from pprint import pprint
+    print("📊 Best sourcing regions for: Cotton T-Shirt")
+    pprint(score_regions())
+
+
 
 if __name__ == "__main__":
     setup_logging(debug_mode=config.DEBUG_MODE)

@@ -49,6 +49,9 @@ LOG_FILE = LOGS_DIR / "jennai.log"
 # ============================================================================
 DB_PATH      = ROOT / "jennai_db.sqlite"
 TEST_DB_PATH = ROOT / "test_jennai_db.sqlite"
+SCHEMA_PATH = DATA_DIR / "schema.sql"
+DB_PATH = DATA_DIR / "implementations" / "sqllite" / "textile.db"
+
 
 # ============================================================================
 # 5. ENVIRONMENTS & EXECUTION CONTEXT

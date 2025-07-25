@@ -1,3 +1,8 @@
+# save_schema.py — place this wherever you want to run it from (e.g. scripts/tools)
+
+from config.config import DATA_DIR
+from pathlib import Path
+
 schema_sql = """
 -- Schema for Global Textile Arbitrage System
 
@@ -96,9 +101,11 @@ CREATE TABLE sourcing_scores (
 );
 """
 
-# Save the SQL schema to a file
-file_path = "G:\\Projects\\jennai-inception\\src\\data\\schema.sql"
-with open(file_path, "w") as f:
+# Save the schema using the config-defined path
+schema_path = DATA_DIR / "schema.sql"
+schema_path.parent.mkdir(parents=True, exist_ok=True)
+
+with open(schema_path, "w", encoding="utf-8") as f:
     f.write(schema_sql)
 
-file_path
+print(f"✅ Schema saved to: {schema_path}")
